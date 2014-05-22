@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<head>
+  <title>Pusher Test</title>
+  <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+  <script src="http://js.pusher.com/2.2/pusher.min.js" type="text/javascript"></script>
+  <script type="text/javascript">
+    // Enable pusher logging - don't include this in production
+    Pusher.log = function(message) {
+      if (window.console && window.console.log) {
+        window.console.log(message);
+      }
+    };
+
+    var pusher = new Pusher('d889e86646d3314749ce');
+    var channel = pusher.subscribe('file-changes');
+    channel.bind('file-changed', function(data) {
+      console.log(data.message);
+    });
+
+    $(function(){
+      $('.board div').click(function(){
+        console.log($(this).attr('class'));
+        var c = $(this).attr('class');
+
+        if(c == 'white'){
+          $(this).attr('class', 'black'); 
+        } else if(c == 'black'){
+          $(this).attr('class', ''); 
+        } else {
+          $(this).attr('class', 'white');
+        }
+      });
+    });
+
+  </script>
+  <style>
+      body {
+        text-align: center;
+        padding: 40px;
+        background:
+          radial-gradient(hsl(0, 100%, 27%) 4%, hsl(0, 100%, 18%) 9%, hsla(0, 100%, 20%, 0) 9%) 0 0,
+          radial-gradient(hsl(0, 100%, 27%) 4%, hsl(0, 100%, 18%) 8%, hsla(0, 100%, 20%, 0) 10%) 50px 50px,
+          radial-gradient(hsla(0, 100%, 30%, 0.8) 20%, hsla(0, 100%, 20%, 0)) 50px 0,
+          radial-gradient(hsla(0, 100%, 30%, 0.8) 20%, hsla(0, 100%, 20%, 0)) 0 50px,
+          radial-gradient(hsla(0, 100%, 20%, 1) 35%, hsla(0, 100%, 20%, 0) 60%) 50px 0,
+          radial-gradient(hsla(0, 100%, 20%, 1) 35%, hsla(0, 100%, 20%, 0) 60%) 100px 50px,
+          radial-gradient(hsla(0, 100%, 15%, 0.7), hsla(0, 100%, 20%, 0)) 0 0,
+          radial-gradient(hsla(0, 100%, 15%, 0.7), hsla(0, 100%, 20%, 0)) 50px 50px,
+          linear-gradient(45deg, hsla(0, 100%, 20%, 0) 49%, hsla(0, 100%, 0%, 1) 50%, hsla(0, 100%, 20%, 0) 70%) 0 0,
+          linear-gradient(-45deg, hsla(0, 100%, 20%, 0) 49%, hsla(0, 100%, 0%, 1) 50%, hsla(0, 100%, 20%, 0) 70%) 0 0;
+          background-color: #300; 
+          background-size: 100px 100px;
+      }
+      .wrapper {
+       width: 50%;
+       margin: 0 auto;
+       display: inline-block;
+       position: relative;
+      }
+      .wrapper:after {
+          padding-top: 100%; /*16:9 ratio*/
+          display: block;
+          content: '';
+      }
+      .board  {
+        border: 10px solid #000;
+        position: absolute;
+        top: 0; bottom: 0; right: 0; left: 0;
+        overflow: hidden;
+        box-shadow: 0px 0px 14px 9px rgba(0, 0, 0, 0.2) inset, 0px 4px 22px 5px rgba(0, 0, 0, 0.6);
+        background:url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAYAAADED76LAAAAZUlEQVQYV2PknCn8n+M5K8MPyd8M2GhGkSrx/1/l/4AlZZQlGZ7cfY6imBHZBOE3fAxvRT6hmMQo2CDxH2Q8NkmQiSgmYHUDyAR0u0H859efMYDchmIC90MWsCCySWA3YDMB5hsALnlfxX+XUaUAAAAASUVORK5CYII=) repeat;
+      }
+      .board div {
+        box-sizing: border-box;
+        width: 12.5%;
+        height: 12.5%;
+        float: left;
+        box-shadow: 3px 3px 14px 0px rgba(0, 0, 0, 0.3) inset;
+        position: relative;
+      }
+
+      .black:after {
+        content: "";
+        position: absolute;
+        top: 5%;
+        right: 5%;
+        bottom: 5%;
+        left: 5%;
+        border-radius: 100%;
+        border: 1px solid rgba(0,0,0,0.5);
+        border-bottom: 3px solid rgba(0,0,0,0.5);
+        border-radius: 100%;
+        background: rgba(10,10,10,1);
+        box-shadow: 
+          0 2px 8px rgba(0,0,0,0.5), 
+          inset 0 1px rgba(255,255,255,0.2), 
+          inset 0 10px rgba(255,255,255,0.01), 
+          inset 0 10px 20px rgba(255,255,255,0.25), 
+          inset 0 -15px 30px rgba(40,40,40,0.26);
+      }
+
+      .white:after {
+        content: "";
+        position: absolute;
+        top: 5%;
+        right: 5%;
+        bottom: 5%;
+        left: 5%;
+        border-radius: 100%;
+        border: 1px solid rgba(0,0,0,0.5);
+        border-bottom: 3px solid rgba(0,0,0,0.5);
+        border-radius: 100%;
+        background: rgba(255,255,255,1);
+        box-shadow: 
+          0 2px 8px rgba(0,0,0,0.5), 
+          inset 0 1px rgba(255,255,255,0.3), 
+          inset 0 10px rgba(255,255,255,0.2), 
+          inset 0 10px 20px rgba(255,255,255,0.25), 
+          inset 0 -18px 30px rgba(0,0,0,0.3);
+      }
+
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+  <div class="board">
+    <div id="a1"></div>
+    <div id="b1"></div>
+    <div id="c1"></div>
+    <div id="d1"></div>
+    <div id="e1"></div>
+    <div id="f1"></div>
+    <div id="g1"></div>
+    <div id="h1"></div>
+
+    <div id="a2"></div>
+    <div id="b2"></div>
+    <div id="c2"></div>
+    <div id="d2"></div>
+    <div id="e2"></div>
+    <div id="f2"></div>
+    <div id="g2"></div>
+    <div id="h2"></div>
+
+    <div id="a3"></div>
+    <div id="b3"></div>
+    <div id="c3"></div>
+    <div id="d3"></div>
+    <div id="e3"></div>
+    <div id="f3"></div>
+    <div id="g3"></div>
+    <div id="h3"></div>
+
+    <div id="a4"></div>
+    <div id="b4"></div>
+    <div id="c4"></div>
+    <div id="d4" class="white"></div>
+    <div id="e4" class="black"></div>
+    <div id="f4"></div>
+    <div id="g4"></div>
+    <div id="h4"></div>
+
+    <div id="a5"></div>
+    <div id="b5"></div>
+    <div id="c5"></div>
+    <div id="d5" class="black"></div>
+    <div id="e5" class="white"></div>
+    <div id="f5"></div>
+    <div id="g5"></div>
+    <div id="h5"></div>
+
+    <div id="a6"></div>
+    <div id="b6"></div>
+    <div id="c6"></div>
+    <div id="d6"></div>
+    <div id="e6"></div>
+    <div id="f6"></div>
+    <div id="g6"></div>
+    <div id="h6"></div>
+
+    <div id="a7"></div>
+    <div id="b7"></div>
+    <div id="c7"></div>
+    <div id="d7"></div>
+    <div id="e7"></div>
+    <div id="f7"></div>
+    <div id="g7"></div>
+    <div id="h7"></div>
+
+    <div id="a8"></div>
+    <div id="b8"></div>
+    <div id="c8"></div>
+    <div id="d8"></div>
+    <div id="e8"></div>
+    <div id="f8"></div>
+    <div id="g8"></div>
+    <div id="h8"></div>
+  </div>
+</div>
+</body>
+</html>
