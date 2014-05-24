@@ -14,20 +14,51 @@
     var pusher = new Pusher('d889e86646d3314749ce');
     var channel = pusher.subscribe('file-changes');
     channel.bind('file-changed', function(data) {
-      console.log(data.message);
+      console.log(data);
+      var msg = data.message;
+      msg = msg.split('(').join('[');
+      msg = msg.split(')').join(']');
+      msg = msg.split('white').join('"v"');
+      msg = msg.split('black').join('"s"');
+      msg = msg.split('a').join('"a"');
+      msg = msg.split('b').join('"b"');
+      msg = msg.split('c').join('"c"');
+      msg = msg.split('d').join('"d"');
+      msg = msg.split('e').join('"e"');
+      msg = msg.split('f').join('"f"');
+      msg = msg.split('g').join('"g"');
+      msg = msg.split('h').join('"h"');
+      msg = eval(msg);
+
+      $.each(msg,function(i,e){
+        if(e[0] == "s"){
+          $('#'+ e[1] + e[2]).addClass("black");
+        }
+        else if(e[0] == "v"){
+          $('#'+ e[1] + e[2]).addClass("white");
+        } else {
+          $('#'+ e[0] + e[1]).addClass("selected");
+        }
+      });
+
     });
 
     $(function(){
       $('.board div').click(function(){
-        console.log($(this).attr('class'));
-        var c = $(this).attr('class');
+        var t = $(this);
 
-        if(c == 'white'){
-          $(this).attr('class', 'black'); 
-        } else if(c == 'black'){
-          $(this).attr('class', ''); 
+        if(t.hasClass('selected')){
+          t.removeClass('selected');
+          return;
+        }
+
+        if(t.hasClass('white')){
+          t.removeClass('white')
+          t.addClass('black'); 
+        } else if(t.hasClass('black')){
+          t.removeClass('black'); 
         } else {
-          $(this).attr('class', 'white');
+          t.addClass('white');
         }
       });
     });
@@ -52,7 +83,8 @@
           background-size: 100px 100px;
       }
       .wrapper {
-       width: 50%;
+       width: 100%;
+       max-width: 600px;
        margin: 0 auto;
        display: inline-block;
        position: relative;
@@ -66,7 +98,6 @@
         border: 10px solid #000;
         position: absolute;
         top: 0; bottom: 0; right: 0; left: 0;
-        overflow: hidden;
         box-shadow: 0px 0px 14px 9px rgba(0, 0, 0, 0.2) inset, 0px 4px 22px 5px rgba(0, 0, 0, 0.6);
         background:url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAYAAADED76LAAAAZUlEQVQYV2PknCn8n+M5K8MPyd8M2GhGkSrx/1/l/4AlZZQlGZ7cfY6imBHZBOE3fAxvRT6hmMQo2CDxH2Q8NkmQiSgmYHUDyAR0u0H859efMYDchmIC90MWsCCySWA3YDMB5hsALnlfxX+XUaUAAAAASUVORK5CYII=) repeat;
       }
@@ -77,6 +108,27 @@
         float: left;
         box-shadow: 3px 3px 14px 0px rgba(0, 0, 0, 0.3) inset;
         position: relative;
+      }
+
+      .board div.selected:before {
+        z-index: 10;
+        content: "";
+        position: absolute;
+        top: 5%;
+        right: 5%;
+        bottom: 5%;
+        left: 5%;
+        border-radius: 100%;
+        border: 1px solid rgba(0,0,0,0.5);
+        border-bottom: 3px solid rgba(0,0,0,0.5);
+        border-radius: 100%;
+        background: rgba(234,57,28,.4);
+        box-shadow: 
+          0 2px 8px rgba(0,0,0,0.5), 
+          inset 0 1px rgba(255,255,255,0.3), 
+          inset 0 10px rgba(255,255,255,0.2), 
+          inset 0 10px 20px rgba(255,255,255,0.25), 
+          inset 0 -18px 30px rgba(0,0,0,0.3);
       }
 
       .black:after {
@@ -119,11 +171,78 @@
           inset 0 -18px 30px rgba(0,0,0,0.3);
       }
 
+      .board div:before
+      { position: absolute; 
+        color: white;
+        top: 40%;
+        left: -50%;
+        font-size: 1em;
+        font-family: sans-serif;
+      }
+
+      .horizontal {
+        position: absolute;
+        left: 0;
+        right: 0;
+        width: 100%;
+        top: -30px;
+        display: block;
+      }
+
+      .vertical {
+        position: absolute;
+        left: -30px;
+        bottom: 0;
+        top: 0;
+        display: block;
+        height: 100%;
+      }
+
+      .horizontal span, .vertical span {
+        display:block;
+        text-align: center;
+        color: white;
+        font-family: sans-serif;
+      }
+      .horizontal span {
+        float: left;
+        width: 12.5%;
+      }
+
+      .vertical span {
+        height: 12.5%;
+        padding-top: 50%;
+      }
+
+      .vertical span i {
+        
+      }
+
   </style>
 </head>
 <body>
   <div class="wrapper">
   <div class="board">
+    <span class="horizontal">
+      <span>a</span>
+      <span>b</span>
+      <span>c</span>
+      <span>d</span>
+      <span>e</span>
+      <span>f</span>
+      <span>g</span>
+      <span>h</span>
+    </span>
+        <span class="vertical">
+      <span><i>1</i></span>
+      <span><i>2</i></span>
+      <span><i>3</i></span>
+      <span><i>4</i></span>
+      <span><i>5</i></span>
+      <span><i>6</i></span>
+      <span><i>7</i></span>
+      <span><i>8</i></span>
+    </span>
     <div id="a1"></div>
     <div id="b1"></div>
     <div id="c1"></div>
@@ -154,8 +273,8 @@
     <div id="a4"></div>
     <div id="b4"></div>
     <div id="c4"></div>
-    <div id="d4" class="white"></div>
-    <div id="e4" class="black"></div>
+    <div id="d4"></div>
+    <div id="e4"></div>
     <div id="f4"></div>
     <div id="g4"></div>
     <div id="h4"></div>
@@ -163,8 +282,8 @@
     <div id="a5"></div>
     <div id="b5"></div>
     <div id="c5"></div>
-    <div id="d5" class="black"></div>
-    <div id="e5" class="white"></div>
+    <div id="d5"></div>
+    <div id="e5"></div>
     <div id="f5"></div>
     <div id="g5"></div>
     <div id="h5"></div>

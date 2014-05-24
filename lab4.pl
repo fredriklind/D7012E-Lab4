@@ -1,5 +1,6 @@
-startBoard([(white,d,4),(black,e,4),(black,d,5),(white,e,5)]).
-
+startBoard(X):-
+  X = ([(white,d,4),(black,e,4),(black,d,5),(white,e,5)]),
+  outputBoard(X).
 
 % Converting X values to numbers
 xval(a,1).
@@ -11,10 +12,19 @@ xval(f,6).
 xval(g,7).
 xval(h,8).
 
+flipStone(white,black).
+flipStone(black,white).
+placeBlack(blank,black).
+placeWhite(blank,white).
+
 max(X, Y, X) :- X > Y, !.
 max(X, Y, Y) :- X =< Y.
 
-isMemberOfBoard((X1,Y1), [(_,X2,Y2)|T]) :- (X1=X2,Y1=Y2); member((X1,Y1), T).
+countStones(Color,Board,N):-
+  findall(Color,member((Color,_,_),Board),L),
+  length(L,N).
+
+%stonePosition():-
 
 distanceFrom((X1,Y1),(X2,Y2),Distance):-
   xval(X1,X1n),
@@ -25,15 +35,127 @@ distanceFrom((X1,Y1),(X2,Y2),Distance):-
   B is abs(Y1-Y2),
   max(A,B,Distance).
 
-pruneEmptyPositions([],[],[]).
-pruneEmptyPositions([(X,Y)|Positions],[(Color,X2,Y2)|Board],[(Color2,X3,Y3)|PrunedBoard]):-
+rowsFromPosition(Pos,L):-
+  setof(Z,inCorridorOfPosition(Pos,Z),L).
 
+% Gets/Checks if a position is within diagonal
+% or straight rows from another position
+inCorridorOfPosition((X1,Y1),(X2,Y2)):-
+  xval(X1,X1n),
+  xval(X2,X2n),
+  between(1,8,X1n),
+  between(1,8,X2n),
+  between(1,8,Y1),
+  between(1,8,Y2),
+  not((X1n=X2n,Y1=Y2)),
+  (
+    X1n-Y1 =:= X2n-Y2;
+    X1n+Y1 =:= X2n+Y2;
+    X1n    =:= X2n;
+    Y1     =:= Y2
+  ).
 
+% Predicates for checking and generating positions 
+% that relate to eachother by direction
+north((X1,Y1),(X2,Y2)):-
+  inCorridorOfPosition((X1,Y1),(X2,Y2)),
+  X1 = X2,
+  Y1 @> Y2.
 
-% Removes
-positionListFromBoard(Board,PosList).
+northEast((X1,Y1),(X2,Y2)):-
+  inCorridorOfPosition((X1,Y1),(X2,Y2)),
+  X1 @< X2,
+  Y1 @> Y2.
 
-% legalmove(Color, Board, X, Y).
-% open('output.txt',write,Stream), 
-% write(Stream,Hogwarts),nl(Stream), 
-% close(Stream),
+east((X1,Y1),(X2,Y2)):-
+  inCorridorOfPosition((X1,Y1),(X2,Y2)),
+  X1 @< X2,
+  Y1 = Y2.
+
+southEast((X1,Y1),(X2,Y2)):-
+  inCorridorOfPosition((X1,Y1),(X2,Y2)),
+  X1 @< X2,
+  Y1 @< Y2.
+
+south((X1,Y1),(X2,Y2)):-
+  inCorridorOfPosition((X1,Y1),(X2,Y2)),
+  X1 = X2,
+  Y1 @< Y2.
+
+southWest((X1,Y1),(X2,Y2)):-
+  inCorridorOfPosition((X1,Y1),(X2,Y2)),
+  X1 @> X2,
+  Y1 @< Y2.
+
+west((X1,Y1),(X2,Y2)):-
+  inCorridorOfPosition((X1,Y1),(X2,Y2)),
+  X1 @> X2,
+  Y1 = Y2.
+
+northWest((X1,Y1),(X2,Y2)):-
+  inCorridorOfPosition((X1,Y1),(X2,Y2)),
+  X1 @> X2,
+  Y1 @> Y2.
+
+% Intersects a list of positions with stones on a board
+onlyStones(Positions,Board,PosStones):-
+  rowsFromPosition((c,4),Positions),
+  findall(X,member((_,X),Board),Stones),
+  intersection(Positions,Stones,PosStones).
+
+% Gets all positions left, right, top down, 
+% originating in a single point, Pos
+positionsInCorridor(Pos,DirectionPred,L):-
+  ( 
+    DirectionPred = north;
+    DirectionPred = northEast;
+    DirectionPred = east;
+    DirectionPred = southEast;
+    DirectionPred = south;
+    DirectionPred = southWest;
+    DirectionPred = west;
+    DirectionPred = northWest
+  ),
+  setof(X,call(DirectionPred,Pos,X),L1),
+  between(1,8,Z),
+  setof(Y,distanceFrom(Pos,Y,Z),L2),
+  intersection(L1,L2,[L|_]).
+
+% Backtracks over all corridors of a position Pos, reverses the order of
+% north, southWest, west and northWest corridors to get the order of the positions
+% to always go from the source Pos.
+%
+% Reversing not currently working, it returns to many lists.
+corridorForPosition(Pos,L):-
+  setof(X,positionsInCorridor(Pos,_,X),Corridor),
+  (
+    isLeftSideCorridor(Pos,Corridor) -> reverse(Corridor,L)
+    ;
+    L = Corridor
+  ),
+  outputBoard(L).
+
+% Checks if a corridor is to the left or top of a position.
+% This is needed because in the predicate above it needs to reverse
+% these corridors to make them start at the position in question 
+% (going outward from the position)
+isLeftSideCorridor(Pos,[FirstPos|_]):-
+  ( 
+    DirectionPred = north;
+    DirectionPred = southWest;
+    DirectionPred = west;
+    DirectionPred = northWest
+  ),
+  Pred =.. [(DirectionPred),Pos,FirstPos],
+  Pred -> true ; false.
+
+flipCorridor(FlipList,)
+
+  
+%legalmove(Color, Board, X, Y).
+
+outputBoard(Board):-
+  open('output.txt',write,Stream),
+  write(Stream,Board),
+  close(Stream).  
+
