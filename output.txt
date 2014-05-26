@@ -1,1 +1,1 @@
-[ (c,4), (b,4), (a,4)]
+[ (white,d,4), (black,e,4), (black,d,5), (white,e,5)]

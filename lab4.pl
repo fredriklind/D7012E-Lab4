@@ -24,8 +24,6 @@ countStones(Color,Board,N):-
   findall(Color,member((Color,_,_),Board),L),
   length(L,N).
 
-%stonePosition():-
-
 distanceFrom((X1,Y1),(X2,Y2),Distance):-
   xval(X1,X1n),
   xval(X2,X2n),
@@ -98,10 +96,13 @@ northWest((X1,Y1),(X2,Y2)):-
   Y1 @> Y2.
 
 % Intersects a list of positions with stones on a board
-onlyStones(Positions,Board,PosStones):-
-  rowsFromPosition((c,4),Positions),
-  findall(X,member((_,X),Board),Stones),
-  intersection(Positions,Stones,PosStones).
+onlyStones(Positions,Board,Stones):-
+  member(X,Positions),
+  findall((Color,X),member((Color,X),Board),Stones).
+  %intersection(Positions,L,Intersection),
+  %exclude(member(X)).
+
+%onlyStones([(d,4),(a,1),(e,4)],[(white,d,4),(black,e,4),(black,d,5),(white,e,5)],Y).
 
 % Gets all positions left, right, top down, 
 % originating in a single point, Pos
@@ -132,8 +133,11 @@ corridorForPosition(Pos,L):-
     isLeftSideCorridor(Pos,Corridor) -> reverse(Corridor,L)
     ;
     L = Corridor
-  ),
-  outputBoard(L).
+  ).
+
+allCorridorsForPosition(Pos,L):-
+  setof(X,corridorForPosition(Pos,X),L).
+  %outputBoard(L).
 
 % Checks if a corridor is to the left or top of a position.
 % This is needed because in the predicate above it needs to reverse
@@ -149,13 +153,88 @@ isLeftSideCorridor(Pos,[FirstPos|_]):-
   Pred =.. [(DirectionPred),Pos,FirstPos],
   Pred -> true ; false.
 
-flipCorridor(FlipList,)
-
+% Color is the opposite of the color that was placed in the 
+% move preceeding this predicate.
+% Row is a list of stones on the board.
+flipRow(Color,Row,Flips):-
   
-%legalmove(Color, Board, X, Y).
+  % Generate a list, like black,black,black,white
+  flipList(Color,FlipList,[]),
+  
+  % Get lengths
+  length(Row,RowLength),
+  length(FlipList,FlipListLength),
+  
+  FlipListLength >= RowLength ,!,
+  
+  % Does the generated list match Row?
+  prefix(FlipList,Row),
+
+  % Delete last and bind to Flips
+  last(FlipList,Last),
+  delete(FlipList,Last,Flips).
+
+flipManyRows(Color,[Row|Rows],[Flip|Flips]):-
+  flipRow(Color,Row,Flip),
+  flipManyRows(Color,Rows,Flips).
+flipManyRows(_,_,[]).
+
+flipManyRowsComplete(Color,Rows,Flips):-
+  setof(X,flipManyRows(Color,Rows,X),L),
+  flatten(L,L2),
+  list_to_set(L2,Flips).
+
+% Converts lists of lists of positions to lists of lists 
+% containing stones on the Board
+manyPositionRowsToStoneRows([Row|Rows],Board,[BoardRow|BoardRows]):-
+  onlyStones(Row,Board,BoardRow),
+  manyPositionRowsToStoneRows(Rows,Board,BoardRows).
+manyPositionRowsToStoneRows(_,_,[]).
+
+% Use DCG to generate/check for lists that are of the form
+% either black, black black, white
+% or
+% white, white, white, black
+flipList(_) --> [].
+flipList(Color) --> sColor(Color),{flipStone(Color,InvColor)},[(InvColor,_)].
+sColor(Color) --> [(Color,_)].
+sColor(Color) --> [(Color,_)], sColor(Color).
+
+flipsForMove(Color,Board,(X,Y),Flips):-
+  flipStone(Color,InvColor),
+  %xval(X,Xval),
+  %between(1,8,Xval),
+  %between(1,8,Y),
+  allCorridorsForPosition((X,Y),Rows),
+  manyPositionRowsToStoneRows(Rows,Board,StonesInRows),
+  %outputBoard(StonesInRows),
+  flipManyRowsComplete(InvColor,StonesInRows,Flips).
+
+legalmove(Color, Board, X, Y):-
+  outputBoard(Board),
+
+  % Make sure no stone is at X,Y
+  not(member((_,X,Y),Board)),
+  
+  %Make sure move results in at least one flip.
+  flipsForMove(Color,Board,(X,Y),Flips),
+  %write(Flips),
+  length(Flips,NFlips),
+  NFlips > 0.
+
+/*
+------- Board output -------
+This outputs the board as a string to a text file "output.txt"
+This file is then watched by a node.js server that sends a websocket 
+message to an html page that then updates the graphical representation 
+of the board.
+
+See server.js for the node.js server. Run "node server.js to start the server".
+"pusher" and "chokidar" node.js plugins must be installed to run the server.
+*/
 
 outputBoard(Board):-
+  flatten(Board,B),
   open('output.txt',write,Stream),
-  write(Stream,Board),
-  close(Stream).  
-
+  write(Stream,B),
+  close(Stream).
